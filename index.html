@@ -91,12 +91,8 @@
       const pos=await currentPosition(),origin={lat:pos.coords.latitude,lon:pos.coords.longitude},radiusKm=Number($('radius').value);
       $('roomHint').textContent='Suche nach kleinen öffentlichen Straßen in OpenStreetMap …';
       const query=`[out:json][timeout:25];way(around:${Math.round(radiusKm*1000)},${origin.lat},${origin.lon})["highway"~"^(residential|living_street)$"];out tags geom;`;
-      let response=null,lastErr='';
-      for(const url of ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
-        try{response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(response.ok)break;lastErr='Server '+response.status}
-        catch(e){response=null;lastErr=((e&&e.name)||'Fehler')+': '+((e&&e.message)||'')}
-      }
-      if(!response||!response.ok)throw Error('Straßensuche fehlgeschlagen ('+lastErr+'). Öffne die Seite direkt im Browser, nicht in einer Vorschau oder App.');
+      let response;try{response=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)})}catch{throw Error('Kein Internet für die Straßensuche. Bitte kurz verbinden und nochmal versuchen.')}
+      if(!response.ok)throw Error('OpenStreetMap kann gerade nicht erreicht werden.');
       const data=await response.json(),candidates=[];
       for(const way of data.elements||[]){const t=way.tags||{};if(['private','no'].includes(t.access)||['private','no'].includes(t.motor_vehicle)||['private','no'].includes(t.motorcar)||['private','no'].includes(t.vehicle)||t.motorroad==='yes'||t.tunnel==='yes'||t.bridge==='yes')continue;const pts=way.geometry||[];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],f=.5,p={lat:a.lat+(b.lat-a.lat)*f,lon:a.lon+(b.lon-a.lon)*f};const d=metersBetween(origin,p);if(d>=250&&d<=radiusKm*1000)candidates.push(p)}}
       if(!candidates.length)throw Error('Keine passenden Wohn- oder Spielstraßen im Radius gefunden. Versuch einen größeren Radius oder einen anderen Startort.');
