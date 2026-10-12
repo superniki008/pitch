@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111512">
+  <title>Signal — Autospiel MVP</title>
+  <style>
+    :root{color-scheme:dark;--bg:#111512;--panel:#1b211d;--panel2:#232b26;--text:#f3f6f0;--muted:#a4b0a6;--line:#354139;--green:#b5f36b;--orange:#ffbd69;--red:#ff746d}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#26372a 0,transparent 48%),var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    button,input{font:inherit}button{border:0;cursor:pointer;color:inherit}.wrap{max-width:520px;margin:auto;padding:env(safe-area-inset-top) 18px calc(28px + env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;padding:20px 2px 16px}.brand{font-size:20px;font-weight:800;letter-spacing:-.04em}.brand span{color:var(--green)}.tag{font-size:11px;font-weight:800;letter-spacing:.12em;color:#182019;background:var(--green);padding:6px 9px;border-radius:99px}
+    h1{font-size:32px;line-height:1.08;letter-spacing:-.045em;margin:15px 0 8px}.sub{margin:0;color:var(--muted);font-size:14px}.card{background:linear-gradient(145deg,#202822,#191e1a);border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:16px;box-shadow:0 16px 50px #0002}.section-title{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin:0 0 13px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.stack{display:grid;gap:10px}.button{min-height:50px;width:100%;border-radius:15px;background:var(--green);color:#182017;font-weight:800;padding:12px 16px;transition:transform .1s,opacity .1s}.button:active{transform:scale(.98)}.button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);min-height:42px}.button:disabled{opacity:.42;cursor:not-allowed}.inputrow{display:flex;gap:9px}.inputrow input{min-width:0;flex:1;background:#111612;border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--text);outline:none}.inputrow input:focus{border-color:var(--green)}.inputrow .button{width:auto;min-width:105px}
+    .players{display:grid;gap:10px}.player{display:flex;align-items:center;gap:11px}.avatar{height:36px;width:36px;border-radius:13px;background:#344239;display:grid;place-items:center;font-size:17px}.player-name{flex:1;font-weight:650}.status{font-size:12px;color:var(--muted)}.status.ready{color:var(--green)}.divider{height:1px;background:var(--line);margin:15px 0}.hint{font-size:12px;color:var(--muted);margin:10px 0 0}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:6px 10px;color:var(--muted)}.radius{accent-color:var(--green);width:100%;margin:12px 0}.range-label{font-weight:750}.warn{border-color:#6b5030;background:linear-gradient(145deg,#31281b,#211d17)}.warn strong{color:var(--orange)}.checkline{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#e6e8e1}.checkline input{accent-color:var(--green);width:19px;height:19px;flex:none;margin:2px 0 0}.hidden{display:none!important}
+    .signal-card{text-align:center;padding:24px 20px}.signal-icon{width:102px;height:102px;margin:8px auto 15px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#43583e 0,#2c382d 58%,#232b26 60%);border:1px solid #5b724e;color:var(--green);font-size:36px;box-shadow:0 0 0 9px #b5f36b0b}.state{font-size:22px;font-weight:800}.trend{margin-top:4px;color:var(--muted);font-size:14px}.signal-readout{color:var(--green);font-size:13px;font-weight:700;margin-top:14px}.game-tools{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.volume{display:flex;align-items:center;gap:12px;margin-top:12px}.volume input{flex:1;accent-color:var(--green)}.notice{font-size:12px;color:var(--muted);line-height:1.5}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#f3f6f0;color:#111512;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:0 8px 30px #0006;z-index:3;max-width:90%;text-align:center}.modal{position:fixed;inset:0;z-index:2;background:#000b;display:grid;place-items:end center;padding:14px}.dialog{width:min(100%,500px);background:#1d241f;border:1px solid var(--line);border-radius:24px;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 20px 80px #0008}.dialog h2{margin:0 0 9px;font-size:23px}.dialog p{font-size:14px;color:#c1c9c2}.dialog .checkline{margin:16px 0}.small{font-size:11px;color:var(--muted)}
+    @media(min-width:500px){.wrap{padding-top:16px}.modal{place-items:center}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header><div class="brand">SIGNAL<span>///</span></div><span class="tag">MVP · LOKAL</span></header>
+    <section id="lobbyView">
+      <h1>Wie möchtest du spielen?</h1><p class="sub">Eine Person erzeugt das Ziel. Alle anderen geben denselben Code ein.</p>
+      <div class="game-tools" style="margin-top:18px"><button id="hostModeBtn" class="button">Ort erzeugen</button><button id="joinModeBtn" class="button secondary">Code eingeben</button></div>
+      <div id="hostPanel" class="card">
+        <p class="section-title">Als Host</p>
+        <p class="notice">Der Host-Standort legt nur den Mittelpunkt fest. Das Ziel wird zufällig auf einer passenden Straße im Radius gewählt.</p>
+        <div class="row" style="margin-top:14px"><span class="range-label">Suchradius</span><span class="pill"><b id="radiusLabel">3 km</b></span></div>
+        <input id="radius" class="radius" type="range" min="1" max="10" value="3" aria-label="Suchradius in Kilometern">
+        <button id="roadTargetBtn" class="button" style="margin-top:8px">Zufälligen Ort erzeugen</button>
+        <p class="hint" id="roomHint">Der Host braucht für die Straßensuche kurz Internet.</p>
+        <div id="generatedCodePanel" class="hidden" style="margin-top:14px"><p class="section-title">Dein Code zum Teilen</p><textarea id="shareCode" aria-label="Ziel-Code zum Teilen" readonly style="width:100%;height:82px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px;resize:vertical;font-size:11px"></textarea><button class="button secondary" id="copyCodeBtn" style="margin-top:8px">Code kopieren</button></div>
+      </div>
+      <div id="joinPanel" class="card hidden">
+        <p class="section-title">Mit Ziel-Code beitreten</p>
+        <p class="notice">Füge den Code ein, den dir der Host geschickt hat. Danach könnt ihr den Start telefonisch absprechen.</p>
+        <div class="inputrow" style="margin-top:14px"><input id="joinCode" maxlength="500" placeholder="SIG1.…" aria-label="Ziel-Code"><button id="joinBtn" class="button secondary">Code laden</button></div>
+        <p class="hint" id="joinStatus"></p>
+      </div>
+      <div class="card">
+        <p class="section-title">Vorbereitung</p>
+        <p class="hint">Der MVP sucht zufällig auf kartierten Wohn- oder Spielstraßen. Zugang und Erreichbarkeit sind nicht garantiert. Für die Suche sendet das Handy des Hosts einmal den Mittelpunkt und Radius an den öffentlichen OpenStreetMap-Dienst. © OpenStreetMap-Mitwirkende.</p>
+      </div>
+      <div class="card warn">
+        <p style="margin:0 0 7px"><strong>Erst sicher, dann spielen.</strong></p>
+        <p class="notice" style="margin:0">Die fahrende Person bedient das Handy niemals. Eine Beifahrerin oder ein Beifahrer übernimmt die App. Nicht aufs Display schauen, nicht abrupt anhalten oder wenden. Verkehrsregeln gelten immer.</p>
+      </div>
+      <div class="stack" style="margin-top:16px"><button id="startBtn" class="button">Runde lokal starten</button></div>
+      <p class="small" style="text-align:center;margin:24px 8px 0">Die Startzeit wird telefonisch abgesprochen; jede App protokolliert Ankunft lokal. Die Uhrzeit lässt sich manipulieren. Nur im Stand oder als Beifahrer:in bedienen.</p>
+    </section>
+    <section id="gameView" class="hidden">
+      <h1>Folge dem Signal.</h1><p class="sub">Code <b id="gameCode">----</b> · GPS und Signal werden lokal verarbeitet</p>
+      <div class="card signal-card">
+        <div class="signal-icon" id="signalIcon">⌁</div><div class="state" id="signalState">Warte auf Standort</div><div class="trend" id="trendText">Erlaube den Standortzugriff für GPS-Signal.</div><div class="signal-readout" id="signalReadout">● · · · ·</div>
+      </div>
+      <div class="card">
+        <div class="row"><span>Audiohinweise</span><button id="muteBtn" class="button ghost" style="width:auto">Ton aus</button></div>
+        <div class="volume"><span class="small">LEISE</span><input id="volume" type="range" min="0" max="100" value="40" aria-label="Lautstärke"><span id="volumeVal" class="small">40%</span></div>
+        <p class="hint">Kurze, gedeckte Töne. Passe die Lautstärke niedrig an. Bei Ablenkung sofort stummschalten.</p>
+      </div>
+      <div class="card"><p class="section-title">Ankunftsprotokoll</p><p class="notice">Die App notiert den ersten GPS-Messpunkt im 10-m-Radius. Falls ihr den Punkt zwischen zwei Messungen passiert, schätzt sie den Zeitpunkt aus dem GPS-Track.</p><div class="row"><span class="small">STATUS</span><strong id="arrivalTime">Noch nicht angekommen</strong></div></div>
+      <div class="card warn"><strong>Fahrt pausieren.</strong><p class="notice" style="margin:6px 0 0">Benutze die App nicht selbst beim Fahren. Niemand muss für das Spiel plötzlich bremsen, wenden oder eine Route verlassen.</p></div>
+      <button id="endBtn" class="button ghost" style="margin-top:16px">Runde beenden</button>
+    </section>
+  </main>
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="dialog"><h2 id="modalTitle">Sicherheitscheck</h2><p>Eine Runde beginnt nur, wenn das Team sicher steht und alle wissen, dass Verkehrssicherheit Vorrang hat.</p><label class="checkline"><input id="safeCheck" type="checkbox"><span>Wir sind an einem sicheren Ort. Die fahrende Person bedient das Gerät nicht; eine Beifahrerin oder ein Beifahrer übernimmt. Wir halten Verkehrsregeln ein und fahren nicht plötzlich an, halten nicht abrupt an und wenden nicht fürs Spiel.</span></label><div class="stack"><button id="confirmStart" class="button" disabled>Runde starten</button><button id="cancelStart" class="button ghost">Abbrechen</button></div></div>
+  </div>
+  <script>
+    const $=id=>document.getElementById(id);
+    let code='',stagedTarget=null,target=null,active=false,muted=true,watchId=null,audioCtx=null,timer=null,distance=2400,lastDistance=null,arrivedAt=null,hasFix=false,gpsAccuracy=0,lastFix=null,trend='';
+    const codeKeyPhrase='signal-mvp-casual-sharing-key-v1';
+    function toast(s){let el=document.createElement('div');el.className='toast';el.textContent=s;document.body.append(el);setTimeout(()=>el.remove(),2300)}
+    const b64bytes=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+    const fromB64=s=>Uint8Array.from(atob(s.replaceAll('-','+').replaceAll('_','/')+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0));
+    async function getCipherKey(){if(!window.isSecureContext||!crypto.subtle)throw Error('Verschlüsselung nicht verfügbar: Öffne die Seite über HTTPS.');const raw=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(codeKeyPhrase));return crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt'])}
+    async function encodeTarget(point){const iv=crypto.getRandomValues(new Uint8Array(12)),key=await getCipherKey(),plain=new TextEncoder().encode(JSON.stringify({v:1,lat:point.lat,lon:point.lon}));const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plain);return `SIG1.${b64bytes(iv)}.${b64bytes(encrypted)}`}
+    async function decodeTarget(text){const parts=text.trim().split('.');if(parts.length!==3||parts[0]!=='SIG1')throw Error('Das ist kein gültiger SIG1-Ziel-Code.');const key=await getCipherKey(),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(parts[1])},key,fromB64(parts[2])).catch(()=>{throw Error('Code beschädigt oder unvollständig. Kopiere ihn komplett neu.')});const p=JSON.parse(new TextDecoder().decode(plain));if(p.v!==1||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||Math.abs(p.lat)>90||Math.abs(p.lon)>180)throw Error('Der Code enthält keinen gültigen Zielpunkt.');return {lat:p.lat,lon:p.lon}}
+    function currentPosition(){return new Promise((resolve,reject)=>{if(!window.isSecureContext)return reject(Error('GPS funktioniert nur, wenn die Seite über HTTPS geöffnet wird.'));if(!navigator.geolocation)return reject(Error('Dieser Browser bietet keinen Standortzugriff.'));navigator.geolocation.getCurrentPosition(resolve,e=>reject(Error(e&&e.code===1?'Standortzugriff verweigert. Erlaube ihn in den Einstellungen für diese Seite.':e&&e.code===3?'GPS braucht zu lange. Geh nach draußen und versuch es nochmal.':'Standort nicht verfügbar. Prüfe GPS und Freigabe.')), {enableHighAccuracy:true,timeout:20000,maximumAge:0})})}
+    const metersBetween=(a,b)=>{const rad=x=>x*Math.PI/180,R=6371000,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon),q=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(q))};
+    function closestTrackPass(a,b,p){const rad=p.lat*Math.PI/180,x1=(a.lon-p.lon)*111320*Math.cos(rad),y1=(a.lat-p.lat)*110540,x2=(b.lon-p.lon)*111320*Math.cos(rad),y2=(b.lat-p.lat)*110540,dx=x2-x1,dy=y2-y1,den=dx*dx+dy*dy,t=den?Math.max(0,Math.min(1,-(x1*dx+y1*dy)/den)):0;return {distance:Math.hypot(x1+t*dx,y1+t*dy),fraction:t}}
+    function detectArrival(prev,fix,tgt,dist){
+      if(fix.accuracy>15)return null;
+      if(dist<=10)return {time:fix.time,accuracy:fix.accuracy,estimated:false};
+      if(!prev||prev.accuracy>15)return null;
+      const dt=fix.time-prev.time;
+      if(dt<=0||dt>20000||metersBetween(prev,fix)>400)return null;
+      const pass=closestTrackPass(prev,fix,tgt);
+      return pass.distance<=10?{time:prev.time+pass.fraction*dt,accuracy:Math.max(fix.accuracy,prev.accuracy),estimated:true}:null}
+    async function makeRoadTarget(){
+      const pos=await currentPosition(),origin={lat:pos.coords.latitude,lon:pos.coords.longitude},radiusKm=Number($('radius').value);
+      $('roomHint').textContent='Suche nach kleinen öffentlichen Straßen in OpenStreetMap …';
+      const query=`[out:json][timeout:25];way(around:${Math.round(radiusKm*1000)},${origin.lat},${origin.lon})["highway"~"^(residential|living_street)$"];out tags geom;`;
+      let response=null,lastErr='';
+      for(const url of ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
+        try{response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(response.ok)break;lastErr='Server '+response.status}
+        catch(e){response=null;lastErr=((e&&e.name)||'Fehler')+': '+((e&&e.message)||'')}
+      }
+      if(!response||!response.ok)throw Error('Straßensuche fehlgeschlagen ('+lastErr+'). Öffne die Seite direkt im Browser, nicht in einer Vorschau oder App.');
+      const data=await response.json(),candidates=[];
+      for(const way of data.elements||[]){const t=way.tags||{};if(['private','no'].includes(t.access)||['private','no'].includes(t.motor_vehicle)||['private','no'].includes(t.motorcar)||['private','no'].includes(t.vehicle)||t.motorroad==='yes'||t.tunnel==='yes'||t.bridge==='yes')continue;const pts=way.geometry||[];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],f=.5,p={lat:a.lat+(b.lat-a.lat)*f,lon:a.lon+(b.lon-a.lon)*f};const d=metersBetween(origin,p);if(d>=250&&d<=radiusKm*1000)candidates.push(p)}}
+      if(!candidates.length)throw Error('Keine passenden Wohn- oder Spielstraßen im Radius gefunden. Versuch einen größeren Radius oder einen anderen Startort.');
+      const chosen=candidates[Math.floor(Math.random()*candidates.length)];return {lat:Number(chosen.lat.toFixed(6)),lon:Number(chosen.lon.toFixed(6))};
+    }
+    $('hostModeBtn').onclick=()=>{$('hostPanel').classList.remove('hidden');$('joinPanel').classList.add('hidden');$('hostModeBtn').classList.remove('secondary');$('joinModeBtn').classList.add('secondary')};
+    $('joinModeBtn').onclick=()=>{$('joinPanel').classList.remove('hidden');$('hostPanel').classList.add('hidden');$('joinModeBtn').classList.remove('secondary');$('hostModeBtn').classList.add('secondary')};
+    $('radius').oninput=e=>$('radiusLabel').textContent=`${e.target.value} km`;
+    $('roadTargetBtn').onclick=async()=>{const btn=$('roadTargetBtn');btn.disabled=true;btn.textContent='Straße wird gesucht …';try{stagedTarget=await makeRoadTarget();code=await encodeTarget(stagedTarget);$('shareCode').value=code;$('generatedCodePanel').classList.remove('hidden');$('roomHint').textContent='Fertig. Teile den Code. Alle anderen fügen ihn unter „Code eingeben“ ein.';$('startBtn').disabled=false;toast('Ziel-Code erstellt.')}catch(err){toast(err.message||'Ziel konnte nicht erstellt werden.');$('roomHint').textContent=err.message||'Ziel konnte nicht erstellt werden.'}finally{btn.disabled=false;btn.textContent='Zufälligen Ort erzeugen'}};
+    $('joinBtn').onclick=async()=>{try{const m=$('joinCode').value.match(/SIG1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);code=m?m[0]:$('joinCode').value.trim();if(!code)throw Error('Füge zuerst den Ziel-Code ein.');stagedTarget=await decodeTarget(code);$('joinStatus').textContent='Code gültig. Nach gemeinsamer Absprache kannst du die Runde starten.';$('startBtn').disabled=false;toast('Ziel-Code geladen.')}catch(e0){const err=(e0.name==='InvalidCharacterError'||e0 instanceof SyntaxError)?Error('Code beschädigt oder unvollständig. Kopiere ihn komplett neu.'):e0;stagedTarget=null;$('startBtn').disabled=true;$('joinStatus').textContent=err.message||'Code konnte nicht gelesen werden.';toast(err.message||'Code konnte nicht gelesen werden.')}};
+    $('copyCodeBtn').onclick=async()=>{try{await navigator.clipboard.writeText(code);toast('Ziel-Code kopiert.')}catch{$('shareCode').focus();$('shareCode').select();toast('Code markiert – Kopieren auswählen.')}};
+    $('startBtn').onclick=()=>{if(!stagedTarget){toast('Erzeuge zuerst ein Ziel oder lade einen Code.');return}$('modal').classList.remove('hidden');$('safeCheck').checked=false;$('confirmStart').disabled=true};
+    $('safeCheck').onchange=e=>$('confirmStart').disabled=!e.target.checked;
+    $('cancelStart').onclick=()=>$('modal').classList.add('hidden');
+    $('confirmStart').onclick=()=>{$('modal').classList.add('hidden');target=stagedTarget;$('lobbyView').classList.add('hidden');$('gameView').classList.remove('hidden');$('gameCode').textContent=code.slice(0,12)+'…';active=true;distance=3000;lastDistance=null;lastFix=null;arrivedAt=null;hasFix=false;$('arrivalTime').textContent='Noch nicht angekommen';try{const saved=JSON.parse(localStorage.getItem('signal-arrival-'+code)||'null');if(saved?.at){const ts=new Date(saved.at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});if(confirm(`Für diesen Code ist schon eine Ankunft gespeichert (${ts}).\n\nOK = neue Runde, alte Zeit löschen.\nAbbrechen = alte Zeit behalten und anzeigen.`))localStorage.removeItem('signal-arrival-'+code);else{arrivedAt=saved.at;$('signalState').textContent='ZIEL ERREICHT (gespeichert)';$('arrivalTime').textContent=`${ts} · vorher protokolliert`+(saved.estimated?' (geschätzt)':'')}}}catch{}unlockAudio();requestGPS();paintSignal();startAudioLoop()};
+    $('endBtn').onclick=()=>{active=false;stopAudioLoop();if(watchId!==null)navigator.geolocation?.clearWatch(watchId);watchId=null;target=null;$('gameView').classList.add('hidden');$('lobbyView').classList.remove('hidden');};
+    $('muteBtn').onclick=()=>{unlockAudio();muted=!muted;$('muteBtn').textContent=muted?'Ton aus':'Ton an';if(!muted)startAudioLoop();else stopAudioLoop()};
+    $('volume').oninput=e=>{$('volumeVal').textContent=e.target.value+'%'};
+    function requestGPS(){if(!('geolocation'in navigator)){$('trendText').textContent='GPS ist in diesem Browser nicht verfügbar.';return}if(watchId===null){watchId=navigator.geolocation.watchPosition(pos=>{if(!active||!target)return;hasFix=true;gpsAccuracy=pos.coords.accuracy;const here={lat:pos.coords.latitude,lon:pos.coords.longitude},fix={...here,accuracy:pos.coords.accuracy,time:pos.timestamp||Date.now()};distance=metersBetween(here,target);const hit=detectArrival(lastFix,fix,target,distance);lastFix=fix;if(!arrivedAt&&hit){arrivedAt=hit.time;const stamp=new Date(arrivedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('arrivalTime').textContent=`${stamp} · ${hit.estimated?'Track-Schätzung':'GPS-Treffer'} · ±${Math.round(hit.accuracy)} m`;$('signalState').textContent='ZIEL ERREICHT';$('trendText').textContent='Ankunft lokal protokolliert. Sicher weiterfahren; nicht anhalten oder wenden.';try{localStorage.setItem('signal-arrival-'+code,JSON.stringify({at:arrivedAt,accuracy:hit.accuracy,estimated:hit.estimated}))}catch{}stopAudioLoop();toast('Ziel erreicht – Ankunftszeit lokal gespeichert.')}paintSignal();if(!arrivedAt&&!muted&&!timer)startAudioLoop()},e=>{if(arrivedAt)return;$('trendText').textContent=e&&e.code===1?'Standortzugriff verweigert. Erlaube ihn in den Einstellungen und starte neu.':'Gerade kein GPS-Signal. Die App versucht es weiter.'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000})}}
+    function paintSignal(){let d=distance,near=Math.max(0,Math.min(1,1-d/3000));let word=d<250?'Sehr nah':d<800?'In der Nähe':d<1700?'Mittlere Distanz':'Noch weit';if(!arrivedAt)$('signalState').textContent=hasFix?word:'GPS wird gesucht';$('signalReadout').textContent=d<250?'● ● ● ● ●':d<800?'● ● ● · ·':d<1700?'● ● · · ·':'● · · · ·';$('signalIcon').style.boxShadow=`0 0 0 ${8+near*15}px #b5f36b0b, 0 0 ${10+near*24}px #b5f36b${Math.round(near*50).toString(16).padStart(2,'0')}`;if(hasFix&&lastDistance!==null){const delta=lastDistance-d;trend=Math.abs(delta)<8?'Du bewegst dich kaum.':delta>0?'Du näherst dich.':'Du entfernst dich.'}else trend=hasFix?'Erste Messung …':'GPS wird gesucht …';if(hasFix)lastDistance=d;if(!arrivedAt&&target)$('trendText').textContent=hasFix?`${trend} · GPS ±${Math.round(gpsAccuracy)} m${gpsAccuracy>15?' (zu ungenau für Ankunft)':''}`:'GPS wird gesucht …';}
+    function startAudioLoop(){if(muted||!active||arrivedAt||!hasFix)return;stopAudioLoop();function tick(){if(muted||!active||arrivedAt||!hasFix)return;beep();timer=setTimeout(tick,350+Math.min(2100,distance/3000*2100))}tick()}
+    function unlockAudio(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!audioCtx)audioCtx=new C();audioCtx.resume()}catch{}}
+    function stopAudioLoop(){if(timer){clearTimeout(timer);timer=null}}
+    function beep(){if(muted||!active)return;try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!audioCtx)audioCtx=new C();audioCtx.resume();let osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=330+Math.max(0,1-distance/3000)*220;const vol=Number($('volume').value)/100*.5,t=audioCtx.currentTime;gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(vol,t+.01);gain.gain.setTargetAtTime(0,t+.075,.025);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(t);osc.stop(t+.16)}catch{}}
+    $('startBtn').disabled=true;
+  </script>
+</body>
+</html>
