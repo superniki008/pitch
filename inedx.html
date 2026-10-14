@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111512">
+  <title>Signal — Autospiel MVP</title>
+  <style>
+    :root{color-scheme:dark;--bg:#111512;--panel:#1b211d;--panel2:#232b26;--text:#f3f6f0;--muted:#a4b0a6;--line:#354139;--green:#b5f36b;--orange:#ffbd69;--red:#ff746d}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#26372a 0,transparent 48%),var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+    button,input{font:inherit}button{border:0;cursor:pointer;color:inherit}.wrap{max-width:520px;margin:auto;padding:env(safe-area-inset-top) 18px calc(28px + env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;padding:20px 2px 16px}.brand{font-size:20px;font-weight:800;letter-spacing:-.04em}.brand span{color:var(--green)}.tag{font-size:11px;font-weight:800;letter-spacing:.12em;color:#182019;background:var(--green);padding:6px 9px;border-radius:99px}
+    h1{font-size:32px;line-height:1.08;letter-spacing:-.045em;margin:15px 0 8px}.sub{margin:0;color:var(--muted);font-size:14px}.card{background:linear-gradient(145deg,#202822,#191e1a);border:1px solid var(--line);border-radius:22px;padding:18px;margin-top:16px;box-shadow:0 16px 50px #0002}.section-title{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin:0 0 13px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.stack{display:grid;gap:10px}.button{min-height:50px;width:100%;border-radius:15px;background:var(--green);color:#182017;font-weight:800;padding:12px 16px;transition:transform .1s,opacity .1s}.button:active{transform:scale(.98)}.button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);min-height:42px}.button:disabled{opacity:.42;cursor:not-allowed}.inputrow{display:flex;gap:9px}.inputrow input{min-width:0;flex:1;background:#111612;border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--text);outline:none}.inputrow input:focus{border-color:var(--green)}.inputrow .button{width:auto;min-width:105px}
+    .players{display:grid;gap:10px}.player{display:flex;align-items:center;gap:11px}.avatar{height:36px;width:36px;border-radius:13px;background:#344239;display:grid;place-items:center;font-size:17px}.player-name{flex:1;font-weight:650}.status{font-size:12px;color:var(--muted)}.status.ready{color:var(--green)}.divider{height:1px;background:var(--line);margin:15px 0}.hint{font-size:12px;color:var(--muted);margin:10px 0 0}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:6px 10px;color:var(--muted)}.radius{accent-color:var(--green);width:100%;margin:12px 0}.range-label{font-weight:750}.warn{border-color:#6b5030;background:linear-gradient(145deg,#31281b,#211d17)}.warn strong{color:var(--orange)}.checkline{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#e6e8e1}.checkline input{accent-color:var(--green);width:19px;height:19px;flex:none;margin:2px 0 0}.hidden{display:none!important}
+    .signal-card{text-align:center;padding:24px 20px}.signal-icon{width:102px;height:102px;margin:8px auto 15px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#43583e 0,#2c382d 58%,#232b26 60%);border:1px solid #5b724e;color:var(--green);font-size:36px;box-shadow:0 0 0 9px #b5f36b0b}.state{font-size:22px;font-weight:800}.trend{margin-top:4px;color:var(--muted);font-size:14px}.signal-readout{color:var(--green);font-size:13px;font-weight:700;margin-top:14px}.game-tools{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.volume{display:flex;align-items:center;gap:12px;margin-top:12px}.volume input{flex:1;accent-color:var(--green)}.notice{font-size:12px;color:var(--muted);line-height:1.5}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#f3f6f0;color:#111512;padding:11px 16px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:0 8px 30px #0006;z-index:3;max-width:90%;text-align:center}.modal{position:fixed;inset:0;z-index:2;background:#000b;display:grid;place-items:end center;padding:14px}.dialog{width:min(100%,500px);background:#1d241f;border:1px solid var(--line);border-radius:24px;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 20px 80px #0008}.dialog h2{margin:0 0 9px;font-size:23px}.dialog p{font-size:14px;color:#c1c9c2}.dialog .checkline{margin:16px 0}.small{font-size:11px;color:var(--muted)}
+    @media(min-width:500px){.wrap{padding-top:16px}.modal{place-items:center}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header><div class="brand">SIGNAL<span>///</span></div><span class="tag">MVP · LOKAL</span></header>
+    <section id="lobbyView">
+      <h1>Wie möchtest du spielen?</h1><p class="sub">Eine Person erzeugt das Ziel. Alle anderen geben denselben Code ein.</p>
+      <div class="game-tools" style="margin-top:18px"><button id="hostModeBtn" class="button">Ort erzeugen</button><button id="joinModeBtn" class="button secondary">Code eingeben</button></div>
+      <div id="hostPanel" class="card">
+        <p class="section-title">Als Host</p>
+        <p class="notice">Der Host-Standort legt nur den Mittelpunkt fest. Das Ziel wird zufällig auf einer passenden Straße im Radius gewählt.</p>
+        <div class="game-tools" style="margin-top:14px"><button id="carModeBtn" class="button">Auto</button><button id="walkModeBtn" class="button secondary">Zu Fuß</button></div>
+        <div class="row" style="margin-top:14px"><span class="range-label">Radius (höchstens)</span><span class="pill"><b id="radiusLabel">3 km</b></span></div>
+        <input id="radius" class="radius" type="range" min="1" max="10" value="3" aria-label="Radius in Kilometern oder Metern">
+        <div class="row" style="margin-top:14px"><span class="range-label">Mindestabstand zum Host</span><span class="pill"><b id="minLabel">200 m</b></span></div>
+        <input id="minDist" class="radius" type="range" min="200" max="2800" step="200" value="200" aria-label="Mindestabstand zum Host">
+        <button id="roadTargetBtn" class="button" style="margin-top:8px">Zufälligen Ort erzeugen</button>
+        <p class="hint" id="roomHint">Der Host braucht für die Straßensuche kurz Internet.</p>
+        <div id="generatedCodePanel" class="hidden" style="margin-top:14px"><p class="section-title">Dein Code zum Teilen</p><textarea id="shareCode" aria-label="Ziel-Code zum Teilen" readonly style="width:100%;height:82px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px;resize:vertical;font-size:11px"></textarea><button class="button secondary" id="copyCodeBtn" style="margin-top:8px">Code kopieren</button></div>
+      </div>
+      <div id="joinPanel" class="card hidden">
+        <p class="section-title">Mit Ziel-Code beitreten</p>
+        <p class="notice">Füge den Code ein, den dir der Host geschickt hat. Danach könnt ihr den Start telefonisch absprechen.</p>
+        <div class="inputrow" style="margin-top:14px"><input id="joinCode" maxlength="500" placeholder="SIG1.…" aria-label="Ziel-Code"><button id="joinBtn" class="button secondary">Code laden</button></div>
+        <p class="hint" id="joinStatus"></p>
+      </div>
+      <div class="card">
+        <p class="section-title">Vorbereitung</p>
+        <p class="hint">Im Auto-Modus sucht der MVP zufällig auf kartierten Wohn- oder Spielstraßen, zu Fuß zusätzlich auf Fuß- und Wanderwegen. Zugang und Erreichbarkeit sind nicht garantiert. Für die Suche sendet das Handy des Hosts einmal den Mittelpunkt und Radius an den öffentlichen OpenStreetMap-Dienst. © OpenStreetMap-Mitwirkende.</p>
+      </div>
+      <div class="card warn">
+        <p style="margin:0 0 7px"><strong>Erst sicher, dann spielen.</strong></p>
+        <p class="notice" style="margin:0">Die fahrende Person bedient das Handy niemals. Eine Beifahrerin oder ein Beifahrer übernimmt die App. Nicht aufs Display schauen, nicht abrupt anhalten oder wenden. Verkehrsregeln gelten immer.</p>
+      </div>
+      <div class="card" style="margin-top:16px"><label class="small" for="teamName">Teamname (optional, nur fürs Protokoll)</label><input id="teamName" maxlength="30" style="width:100%;margin-top:8px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px"></div><div class="stack" style="margin-top:16px"><button id="startBtn" class="button">Runde lokal starten</button><button id="lastLogBtn" class="button secondary hidden">Letztes Protokoll anzeigen</button></div>
+      <p class="small" style="text-align:center;margin:24px 8px 0">Die Startzeit wird telefonisch abgesprochen; jede App protokolliert Ankunft lokal. Die Uhrzeit lässt sich manipulieren. Nur im Stand oder als Beifahrer:in bedienen.</p>
+    <div id="adminBox" style="margin-top:34px;text-align:center"><button id="adminLink" class="button ghost" style="width:auto;padding:8px 14px;font-size:12px">Administration</button>
+      <div id="adminLogin" class="card hidden" style="margin-top:12px;text-align:left"><label class="small" for="adminPw">Passwort</label><input id="adminPw" type="password" autocomplete="off" style="width:100%;margin:6px 0 10px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px"><button id="adminOk" class="button">Entsperren</button><p class="hint" id="adminMsg"></p></div>
+      <div id="adminPanel" class="card hidden" style="margin-top:12px;text-align:left"><p class="section-title">Administration · Simulation</p><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="simOn"> Runde simulieren (kein echtes GPS)</label>
+        <label class="small" for="simD0" style="display:block;margin-top:12px">Startentfernung in Metern (leer = automatisch, Mitte zwischen Mindestabstand und Radius)</label><input id="simD0" type="number" min="20" style="width:100%;margin:6px 0 10px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px">
+        <label class="small" for="simSpeed">Zeitraffer</label><select id="simSpeed" style="width:100%;margin:6px 0 10px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px"><option value="1">1× (Echtzeit)</option><option value="5" selected>5×</option><option value="20">20×</option></select>
+        <label class="small" for="simRoute">Route</label><select id="simRoute" style="width:100%;margin:6px 0 10px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px"><option value="direct">Direkt zum Ziel</option><option value="detour">Umweg (erst falsch, dann richtig)</option></select>
+        <label class="small" for="simOff">Seitlicher Versatz zur Ziellinie in Metern (über ca. 10 m wird das Ziel verfehlt)</label><input id="simOff" type="number" value="3" style="width:100%;margin:6px 0 10px;padding:10px;background:#111612;color:#c5d2c7;border:1px solid var(--line);border-radius:12px">
+        <p class="hint">Nur zum Testen auf diesem Gerät. Simulierte Runden speichern keine Ankunftszeit zum Code und sind im Protokoll gekennzeichnet. Ohne GPS-Freigabe nutzt der Host in der Simulation München-Mitte als Startort.</p><button id="adminLock" class="button ghost" style="margin-top:8px">Admin sperren</button></div></div>
+    </section>
+    <section id="gameView" class="hidden">
+      <h1>Folge dem Signal.</h1><p class="sub">Code <b id="gameCode">----</b> · GPS und Signal werden lokal verarbeitet</p>
+      <div class="card signal-card">
+        <div class="signal-icon" id="signalIcon">⌁</div><div class="state" id="signalState">Warte auf Standort</div><div class="trend" id="trendText">Erlaube den Standortzugriff für GPS-Signal.</div><div class="signal-readout" id="signalReadout">● · · · ·</div>
+      </div>
+      <div class="card">
+        <div class="row"><span>Audiohinweise</span><button id="muteBtn" class="button ghost" style="width:auto">Ton aus</button></div>
+        <div class="volume"><span class="small">LEISE</span><input id="volume" type="range" min="0" max="100" value="40" aria-label="Lautstärke"><span id="volumeVal" class="small">40%</span></div>
+        <p class="hint">Kurze, gedeckte Töne. Passe die Lautstärke niedrig an. Bei Ablenkung sofort stummschalten.</p>
+      </div>
+      <div class="card"><p class="section-title">Ankunftsprotokoll</p><p class="notice">Die App notiert den ersten GPS-Messpunkt im 10-m-Radius. Falls ihr den Punkt zwischen zwei Messungen passiert, schätzt sie den Zeitpunkt aus dem GPS-Track.</p><div class="row"><span class="small">STATUS</span><strong id="arrivalTime">Noch nicht angekommen</strong></div></div>
+      <div class="card warn"><strong>Fahrt pausieren.</strong><p class="notice" style="margin:6px 0 0">Benutze die App nicht selbst beim Fahren. Niemand muss für das Spiel plötzlich bremsen, wenden oder eine Route verlassen.</p></div>
+      <button id="logBtn" class="button hidden" style="margin-top:16px">Protokoll anzeigen / als PDF laden</button>
+      <button id="endBtn" class="button ghost" style="margin-top:16px">Runde beenden</button>
+    </section>
+    <section id="logView" class="hidden"><div class="card"><p class="section-title">Spielprotokoll</p><canvas id="logCanvas" style="width:100%;border-radius:10px;background:#fff"></canvas><button id="pdfBtn" class="button" style="margin-top:14px">Protokoll als PDF herunterladen</button><button id="logCloseBtn" class="button secondary" style="margin-top:10px">Schließen</button><button id="logDelBtn" class="button ghost" style="margin-top:10px">Protokoll von diesem Gerät löschen</button><p class="hint">Die GPS-Route der letzten Runde wird nur lokal auf diesem Gerät gespeichert. Für den Kartenhintergrund lädt die App beim Anzeigen Kacheln von openstreetmap.org (Internet nötig, dabei sieht der Kartendienst das Kartengebiet).</p></div></section>
+  </main>
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="dialog"><h2 id="modalTitle">Sicherheitscheck</h2><p>Eine Runde beginnt nur, wenn das Team sicher steht und alle wissen, dass Verkehrssicherheit Vorrang hat.</p><label class="checkline"><input id="safeCheck" type="checkbox"><span>Wir sind an einem sicheren Ort. Die fahrende Person bedient das Gerät nicht; eine Beifahrerin oder ein Beifahrer übernimmt. Wir halten Verkehrsregeln ein und fahren nicht plötzlich an, halten nicht abrupt an und wenden nicht fürs Spiel.</span></label><p class="hint">Zu Fuß: nicht beim Gehen aufs Display schauen und Straßen nur an sicheren Stellen überqueren.</p><div class="stack"><button id="confirmStart" class="button" disabled>Runde starten</button><button id="cancelStart" class="button ghost">Abbrechen</button></div></div>
+  </div>
+  <script>
+    const $=id=>document.getElementById(id);
+    let code='',stagedTarget=null,target=null,active=false,muted=true,watchId=null,audioCtx=null,timer=null,distance=2400,lastDistance=null,arrivedAt=null,hasFix=false,gpsAccuracy=0,lastFix=null,trend='',startDist=null,lastBeepAt=0,steady=null;
+    const codeKeyPhrase='signal-mvp-casual-sharing-key-v1';
+    function toast(s){let el=document.createElement('div');el.className='toast';el.textContent=s;document.body.append(el);setTimeout(()=>el.remove(),2300)}
+    const b64bytes=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+    const fromB64=s=>Uint8Array.from(atob(s.replaceAll('-','+').replaceAll('_','/')+'='.repeat((4-s.length%4)%4)),c=>c.charCodeAt(0));
+    async function getCipherKey(){if(!window.isSecureContext||!crypto.subtle)throw Error('Verschlüsselung nicht verfügbar: Öffne die Seite über HTTPS.');const raw=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(codeKeyPhrase));return crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt'])}
+    async function encodeTarget(point){const iv=crypto.getRandomValues(new Uint8Array(12)),key=await getCipherKey(),plain=new TextEncoder().encode(JSON.stringify({v:1,lat:point.lat,lon:point.lon,m:point.m==='w'?'w':'c',r:point.r||3000,n:point.n??null}));const encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plain);return `SIG1.${b64bytes(iv)}.${b64bytes(encrypted)}`}
+    async function decodeTarget(text){const parts=text.trim().split('.');if(parts.length!==3||parts[0]!=='SIG1')throw Error('Das ist kein gültiger SIG1-Ziel-Code.');const key=await getCipherKey(),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(parts[1])},key,fromB64(parts[2])).catch(()=>{throw Error('Code beschädigt oder unvollständig. Kopiere ihn komplett neu.')});const p=JSON.parse(new TextDecoder().decode(plain));if(p.v!==1||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||Math.abs(p.lat)>90||Math.abs(p.lon)>180)throw Error('Der Code enthält keinen gültigen Zielpunkt.');return {lat:p.lat,lon:p.lon,m:p.m==='w'?'w':'c',r:Number.isFinite(p.r)?p.r:3000,n:Number.isFinite(p.n)?p.n:null}}
+    function currentPosition(){return new Promise((resolve,reject)=>{if(!window.isSecureContext)return reject(Error('GPS funktioniert nur, wenn die Seite über HTTPS geöffnet wird.'));if(!navigator.geolocation)return reject(Error('Dieser Browser bietet keinen Standortzugriff.'));navigator.geolocation.getCurrentPosition(resolve,e=>simOn?resolve({coords:{latitude:48.1374,longitude:11.5755,accuracy:50},timestamp:Date.now()}):reject(Error(e&&e.code===1?'Standortzugriff verweigert. Erlaube ihn in den Einstellungen für diese Seite.':e&&e.code===3?'GPS braucht zu lange. Geh nach draußen und versuch es nochmal.':'Standort nicht verfügbar. Prüfe GPS und Freigabe.')), {enableHighAccuracy:true,timeout:20000,maximumAge:0})})}
+    const metersBetween=(a,b)=>{const rad=x=>x*Math.PI/180,R=6371000,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon),q=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(q))};
+    function closestTrackPass(a,b,p){const rad=p.lat*Math.PI/180,x1=(a.lon-p.lon)*111320*Math.cos(rad),y1=(a.lat-p.lat)*110540,x2=(b.lon-p.lon)*111320*Math.cos(rad),y2=(b.lat-p.lat)*110540,dx=x2-x1,dy=y2-y1,den=dx*dx+dy*dy,t=den?Math.max(0,Math.min(1,-(x1*dx+y1*dy)/den)):0;return {distance:Math.hypot(x1+t*dx,y1+t*dy),fraction:t}}
+    function detectArrival(prev,fix,tgt,dist){
+      if(fix.accuracy>15)return null;
+      if(dist<=10)return {time:fix.time,accuracy:fix.accuracy,estimated:false};
+      if(!prev||prev.accuracy>15)return null;
+      const dt=fix.time-prev.time;
+      if(dt<=0||dt>20000||metersBetween(prev,fix)>400)return null;
+      const pass=closestTrackPass(prev,fix,tgt);
+      return pass.distance<=10?{time:prev.time+pass.fraction*dt,accuracy:Math.max(fix.accuracy,prev.accuracy),estimated:true}:null}
+    async function makeRoadTarget(){
+      const pos=await currentPosition(),origin={lat:pos.coords.latitude,lon:pos.coords.longitude},radiusKm=(mode==='w'?Number($('radius').value)/1000:Number($('radius').value)),minD=Number($('minDist').value);
+      $('roomHint').textContent='Suche nach kleinen öffentlichen Straßen in OpenStreetMap …';
+      const R=radiusKm*1000;let candidates=[];
+      for(let attempt=0;attempt<8&&!candidates.length;attempt++){
+      const ang=Math.random()*2*Math.PI,dd=Math.sqrt(minD*minD+Math.random()*(R*R-minD*minD)),c={lat:origin.lat+dd*Math.cos(ang)/110540,lon:origin.lon+dd*Math.sin(ang)/(111320*Math.cos(origin.lat*Math.PI/180))},sr=Math.round(Math.min(1500,Math.max(200,(R-minD)/2)));
+      const query=`[out:json][timeout:25];way(around:${sr},${c.lat},${c.lon})["highway"~"^${mode==='w'?'(residential|living_street|pedestrian|footway|path)':'(residential|living_street)'}$"];out tags geom;`;
+      let response=null,lastErr='';
+      for(const url of ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
+        try{response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(response.ok)break;lastErr='Server '+response.status}
+        catch(e){response=null;lastErr=((e&&e.name)||'Fehler')+': '+((e&&e.message)||'')}
+      }
+      if(!response||!response.ok)throw Error('Straßensuche fehlgeschlagen ('+lastErr+'). Öffne die Seite direkt im Browser, nicht in einer Vorschau oder App.');
+      const data=await response.json();
+      for(const way of data.elements||[]){const t=way.tags||{};if(['private','no'].includes(t.access)||(mode==='c'&&(['private','no'].includes(t.motor_vehicle)||['private','no'].includes(t.motorcar)||['private','no'].includes(t.vehicle)||t.motorroad==='yes'))||(mode==='w'&&(['private','no'].includes(t.foot)||t.footway==='crossing'||t.indoor==='yes'))||t.tunnel==='yes'||t.bridge==='yes')continue;const pts=way.geometry||[];for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],f=.5,p={lat:a.lat+(b.lat-a.lat)*f,lon:a.lon+(b.lon-a.lon)*f};const d=metersBetween(origin,p);if(d>=minD&&d<=radiusKm*1000)candidates.push(p)}}
+      }
+      if(!candidates.length)throw Error('Keine passende Straße zwischen Mindestabstand und Radius gefunden. Versuch es nochmal, mit größerem Radius, kleinerem Mindestabstand oder anderem Startort.');
+      const chosen=candidates[Math.floor(Math.random()*candidates.length)];return {lat:Number(chosen.lat.toFixed(6)),lon:Number(chosen.lon.toFixed(6)),m:mode,r:Math.round(radiusKm*1000),n:minD};
+    }
+    $('hostModeBtn').onclick=()=>{$('hostPanel').classList.remove('hidden');$('joinPanel').classList.add('hidden');$('hostModeBtn').classList.remove('secondary');$('joinModeBtn').classList.add('secondary')};
+    $('joinModeBtn').onclick=()=>{$('joinPanel').classList.remove('hidden');$('hostPanel').classList.add('hidden');$('joinModeBtn').classList.remove('secondary');$('hostModeBtn').classList.add('secondary')};
+    let mode='c';
+    function fmtM(m){return m>=1000?(m/1000).toLocaleString('de-DE')+' km':m+' m'}
+    function fmtR(v){return fmtM(mode==='w'?v:v*1000)}
+    function radiusM(){return mode==='w'?Number($('radius').value):Number($('radius').value)*1000}
+    function syncMin(){const w=mode==='w',m=$('minDist'),top=Math.min(w?2000:14000,radiusM()-(w?25:200));m.max=top;if(Number(m.value)>top)m.value=top;$('minLabel').textContent=fmtM(Number(m.value))}
+    function setMode(m){mode=m;const w=m==='w',r=$('radius'),n=$('minDist');r.min=w?50:1;r.max=w?4000:15;r.step=w?50:1;r.value=w?500:3;n.min=w?25:200;n.step=w?25:200;n.value=w?25:200;$('radiusLabel').textContent=fmtR(Number(r.value));syncMin();$('carModeBtn').classList.toggle('secondary',w);$('walkModeBtn').classList.toggle('secondary',!w)}
+    $('carModeBtn').onclick=()=>setMode('c');$('walkModeBtn').onclick=()=>setMode('w');
+    $('radius').oninput=e=>{$('radiusLabel').textContent=fmtR(Number(e.target.value));syncMin()};$('minDist').oninput=syncMin;
+    $('roadTargetBtn').onclick=async()=>{const btn=$('roadTargetBtn');btn.disabled=true;btn.textContent='Straße wird gesucht …';try{stagedTarget=await makeRoadTarget();code=await encodeTarget(stagedTarget);$('shareCode').value=code;$('generatedCodePanel').classList.remove('hidden');$('roomHint').textContent='Fertig. Teile den Code. Alle anderen fügen ihn unter „Code eingeben“ ein.';$('startBtn').disabled=false;toast('Ziel-Code erstellt.')}catch(err){toast(err.message||'Ziel konnte nicht erstellt werden.');$('roomHint').textContent=err.message||'Ziel konnte nicht erstellt werden.'}finally{btn.disabled=false;btn.textContent='Zufälligen Ort erzeugen'}};
+    $('joinBtn').onclick=async()=>{try{const m=$('joinCode').value.match(/SIG1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);code=m?m[0]:$('joinCode').value.trim();if(!code)throw Error('Füge zuerst den Ziel-Code ein.');stagedTarget=await decodeTarget(code);$('joinStatus').textContent='Code gültig. Nach gemeinsamer Absprache kannst du die Runde starten.';$('startBtn').disabled=false;toast('Ziel-Code geladen.')}catch(e0){const err=(e0.name==='InvalidCharacterError'||e0 instanceof SyntaxError)?Error('Code beschädigt oder unvollständig. Kopiere ihn komplett neu.'):e0;stagedTarget=null;$('startBtn').disabled=true;$('joinStatus').textContent=err.message||'Code konnte nicht gelesen werden.';toast(err.message||'Code konnte nicht gelesen werden.')}};
+    $('copyCodeBtn').onclick=async()=>{try{await navigator.clipboard.writeText(code);toast('Ziel-Code kopiert.')}catch{$('shareCode').focus();$('shareCode').select();toast('Code markiert – Kopieren auswählen.')}};
+    $('startBtn').onclick=()=>{if(!stagedTarget){toast('Erzeuge zuerst ein Ziel oder lade einen Code.');return}$('modal').classList.remove('hidden');$('safeCheck').checked=false;$('confirmStart').disabled=true};
+    $('safeCheck').onchange=e=>$('confirmStart').disabled=!e.target.checked;
+    $('cancelStart').onclick=()=>$('modal').classList.add('hidden');
+    $('confirmStart').onclick=()=>{$('modal').classList.add('hidden');target=stagedTarget;$('lobbyView').classList.add('hidden');$('gameView').classList.remove('hidden');$('gameCode').textContent=(target.m==='w'?'Zu Fuß · ':'Auto · ')+code.slice(0,12)+'…';startRound();active=true;startDist=null;distance=3000;lastDistance=null;lastFix=null;arrivedAt=null;hasFix=false;$('arrivalTime').textContent='Noch nicht angekommen';try{const saved=JSON.parse(localStorage.getItem('signal-arrival-'+code)||'null');if(saved?.at){const ts=new Date(saved.at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});if(confirm(`Für diesen Code ist schon eine Ankunft gespeichert (${ts}).\n\nOK = neue Runde, alte Zeit löschen.\nAbbrechen = alte Zeit behalten und anzeigen.`))localStorage.removeItem('signal-arrival-'+code);else{arrivedAt=saved.at;$('signalState').textContent='ZIEL ERREICHT (gespeichert)';$('arrivalTime').textContent=`${ts} · vorher protokolliert`+(saved.estimated?' (geschätzt)':'')}}}catch{}unlockAudio();requestGPS();paintSignal();startAudioLoop()};
+    $('endBtn').onclick=()=>{stopSim();if(round){if(!round.end)round.end=Date.now();saveRound()}active=false;stopAudioLoop();if(watchId!==null)navigator.geolocation?.clearWatch(watchId);watchId=null;target=null;$('gameView').classList.add('hidden');$('lobbyView').classList.remove('hidden');refreshLogBtn()};
+    $('muteBtn').onclick=()=>{unlockAudio();muted=!muted;$('muteBtn').textContent=muted?'Ton aus':'Ton an';if(!muted)startAudioLoop();else stopAudioLoop()};
+    $('volume').oninput=e=>{$('volumeVal').textContent=e.target.value+'%'};
+    /* ===== Spielprotokoll (lokal, nur letzte Runde) ===== */
+    let round=null;
+    const fmtT=t=>t?new Date(t).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'–';
+    const fmtDur=ms=>{if(ms==null||!(ms>=0))return '–';const x=Math.round(ms/1000);return Math.floor(x/3600)+':'+String(Math.floor(x%3600/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};
+    const fmtD=m=>m==null?'–':m>=1000?(m/1000).toLocaleString('de-DE',{maximumFractionDigits:2})+' km':Math.round(m)+' m';
+    const dm=(a,b)=>metersBetween({lat:a[1],lon:a[2]},{lat:b[1],lon:b[2]});
+    function startRound(){round={v:1,start:Date.now(),end:null,arrival:null,estimated:false,team:($('teamName').value||'').trim(),mode:target.m,minD:target.n,maxR:target.r,tgt:[target.lat,target.lon],sim:simOn,startDist:null,pts:[],truncated:false};$('logBtn').classList.add('hidden')}
+    function saveRound(){if(!round||!round.pts.length)return;try{localStorage.setItem('signal-lastround',JSON.stringify(round))}catch{}}
+    function recFix(fix,dist){if(!round||arrivedAt)return;if(round.pts.length>=20000){round.truncated=true;return}round.pts.push([fix.time,+fix.lat.toFixed(6),+fix.lon.toFixed(6),Math.round(fix.accuracy),Math.round(dist)]);if(round.startDist===null&&fix.accuracy<=30)round.startDist=Math.round(dist);if(round.pts.length%10===1)saveRound()}
+    function loadLog(){try{return JSON.parse(localStorage.getItem('signal-lastround')||'null')}catch{return null}}
+    function refreshLogBtn(){const L=loadLog();$('lastLogBtn').classList.toggle('hidden',!(L&&L.pts&&L.pts.length))}
+    function analyze(L){const vmax=L.mode==='w'?12:70,good=[];let dropped=0,path=0,ws=0,wt=0,gaps=0;const segs=[];
+      for(const p of L.pts){if(p[3]>30){dropped++;continue}const q=good[good.length-1];if(q){const dt=(p[0]-q[0])/1000;if(dt<=0||(dt<30&&dm(q,p)/dt>vmax)){dropped++;continue}}good.push(p)}
+      for(let i=1;i<good.length;i++){const a=good[i-1],b=good[i],dt=(b[0]-a[0])/1000;if(dt>30){gaps++;continue}const d=dm(a,b);if(d>=2)path+=d;ws+=(a[4]+b[4])/2*dt;wt+=dt;segs.push([a,b])}
+      return {good,segs,path,avg:wt>0?ws/wt:null,min:good.length?Math.min(...good.map(p=>p[4])):null,gaps,dropped}}
+    const uv=(la,lo)=>[(lo+180)/360,(1-Math.asinh(Math.tan(la*Math.PI/180))/Math.PI)/2];
+    function geo(L,pts){const all=pts.map(p=>uv(p[1],p[2]));if(L.tgt)all.push(uv(L.tgt[0],L.tgt[1]));const us=all.map(a=>a[0]),vs=all.map(a=>a[1]),u1=Math.min(...us),u2=Math.max(...us),v1=Math.min(...vs),v2=Math.max(...vs),S=Math.min(256*2**20,980/Math.max(u2-u1,1e-6),620/Math.max(v2-v1,1e-6));return {S,Z:Math.max(0,Math.min(19,Math.floor(Math.log2(S/256)))),uc:(u1+u2)/2,vc:(v1+v2)/2}}
+    let tileTok=0,tilePromise=null,curLog=null;
+    function loadTiles(L){const A=analyze(L);if(!A.good.length)return Promise.resolve(null);const G=geo(L,A.good),n=2**G.Z,x1=Math.floor((G.uc-560/G.S)*n),x2=Math.floor((G.uc+560/G.S)*n),y1=Math.floor((G.vc-380/G.S)*n),y2=Math.floor((G.vc+380/G.S)*n),jobs=[];if((x2-x1+1)*(y2-y1+1)>60)return Promise.resolve(null);
+      for(let x=x1;x<=x2;x++)for(let y=y1;y<=y2;y++){if(y<0||y>=n)continue;jobs.push(new Promise(res=>{const im=new Image(),to=setTimeout(()=>res(null),8000);im.crossOrigin='anonymous';im.onload=()=>{clearTimeout(to);res({img:im,x,y})};im.onerror=()=>{clearTimeout(to);res(null)};im.src=`https://tile.openstreetmap.org/${G.Z}/${((x%n)+n)%n}/${y}.png`}))}
+      return Promise.all(jobs).then(l=>{l=l.filter(Boolean);return l.length?{Z:G.Z,list:l}:null})}
+    function drawReport(L,cv,tiles){const W=1240,H=1754;cv.width=W;cv.height=H;const c=cv.getContext('2d'),A=analyze(L),w=L.mode==='w';
+      const T=(t,x,y,sz,col,wt,al)=>{c.font=(wt||'400')+' '+sz+'px system-ui,Arial,sans-serif';c.fillStyle=col||'#1b241d';c.textAlign=al||'left';c.fillText(t,x,y)};
+      c.fillStyle='#fff';c.fillRect(0,0,W,H);c.fillStyle='#16251a';c.fillRect(0,0,W,150);
+      T('Signal – Spielprotokoll',60,80,52,'#fff','700');if(L.sim)T('SIMULIERTE RUNDE (Admin-Test)',W-60,80,26,'#ffcf5c','700','right');
+      T(new Date(L.start).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})+' · Team: '+(L.team||'nicht angegeben'),60,122,26,'#b9c9bc');
+      T(L.arrival?'Ziel gefunden':'Ziel nicht gefunden (Runde beendet)',60,206,36,L.arrival?'#1f7a3a':'#a35a00','700');
+      T('Einstellungen der Runde',60,268,28,'#1b241d','700');
+      [['Fortbewegung',w?'Zu Fuß':'Auto'],['Mindestabstand',L.minD==null?'unbekannt':fmtD(L.minD)],['Maximaler Radius',L.maxR==null?'unbekannt':fmtD(L.maxR)],['Startentfernung',fmtD(L.startDist)]].forEach((e,i)=>{const x=60+(i%2)*560,y=318+Math.floor(i/2)*46;T(e[0]+':',x,y,24,'#5b665e');T(e[1],x+240,y,24,'#1b241d','600')});
+      const X=60,Y=420,MW=1120,MH=760,pts=A.good;c.fillStyle='#eef2ee';c.fillRect(X,Y,MW,MH);c.strokeStyle='#c9d3cb';c.lineWidth=2;c.strokeRect(X,Y,MW,MH);
+      const Dmax=Math.max(1,...pts.map(p=>p[4])),col=d=>`hsl(${Math.round(120*(1-Math.min(1,Math.max(0,d)/Dmax)))},80%,40%)`;
+      if(!pts.length)T('Keine verwertbaren GPS-Messpunkte vorhanden',X+MW/2,Y+MH/2,28,'#5b665e','400','center');
+      else{const G=geo(L,pts),M=(la,lo)=>{const q=uv(la,lo);return [X+MW/2+(q[0]-G.uc)*G.S,Y+MH/2+(q[1]-G.vc)*G.S]};
+        c.save();c.beginPath();c.rect(X,Y,MW,MH);c.clip();
+        if(tiles&&tiles.Z===G.Z){const n=2**G.Z,z=G.S/n;for(const t of tiles.list)c.drawImage(t.img,X+MW/2+(t.x/n-G.uc)*G.S,Y+MH/2+(t.y/n-G.vc)*G.S,z+1,z+1)}
+        c.lineCap='round';c.lineJoin='round';for(const pass of [14,8])for(const sg of A.segs){const a=M(sg[0][1],sg[0][2]),b=M(sg[1][1],sg[1][2]);c.lineWidth=pass;c.strokeStyle=pass===14?'rgba(255,255,255,.9)':col((sg[0][4]+sg[1][4])/2);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke()}
+        const mk=(p,lab,fill)=>{c.beginPath();c.arc(p[0],p[1],17,0,7);c.fillStyle=fill;c.fill();c.lineWidth=4;c.strokeStyle='#fff';c.stroke();T(lab,p[0],p[1]+8,22,'#fff','700','center')};
+        mk(M(pts[0][1],pts[0][2]),'S','#16251a');if(L.tgt)mk(M(L.tgt[0],L.tgt[1]),'Z','#1b4fb3');c.restore();
+        const mpp=Math.cos(pts[0][1]*Math.PI/180)*40075016.686/G.S,nice=[10,20,50,100,200,500,1000,2000,5000,10000,20000,50000].filter(n=>n/mpp<=MW*.3).pop();
+        if(nice){c.fillStyle='rgba(255,255,255,.85)';c.fillRect(X+14,Y+MH-86,nice/mpp+32,72);c.fillStyle='#16251a';c.fillRect(X+30,Y+MH-34,nice/mpp,6);T(fmtD(nice),X+30,Y+MH-48,22)}
+        c.fillStyle='rgba(255,255,255,.85)';c.fillRect(X+MW-250,Y+MH-34,250,34);T('© OpenStreetMap-Mitwirkende',X+MW-8,Y+MH-10,17,'#333','400','right');
+        T('N ↑',X+MW-30,Y+44,28,'#16251a','700','right')}
+      T('Farbe = Entfernung zum Ziel (S = Start, Z = Ziel, Norden oben)',60,Y+MH+44,22,'#5b665e');
+      const g=c.createLinearGradient(60,0,660,0);for(let i=0;i<=4;i++)g.addColorStop(i/4,`hsl(${120-30*i},80%,40%)`);c.fillStyle=g;c.fillRect(60,Y+MH+64,600,28);
+      T('am Ziel',60,Y+MH+124,22);T('weit weg ('+fmtD(Dmax)+')',660,Y+MH+124,22,'#1b241d','400','right');
+      const end=L.arrival||L.end||(L.pts.length?L.pts[L.pts.length-1][0]:null);
+      T('Statistik',60,1360,28,'#1b241d','700');
+      [['Zurückgelegte Strecke',pts.length>1?fmtD(A.path):'–'],['Startzeit',fmtT(L.start)],['Ankunftszeit',L.arrival?fmtT(L.arrival)+(L.estimated?' (geschätzt)':''):'nicht erreicht'],['Gesamtdauer',end?fmtDur(end-L.start)+(L.arrival?'':' (bis Rundenende)'):'–'],['Ø Entfernung zum Ziel',A.avg==null?'–':fmtD(A.avg)],['Nächste Annäherung',fmtD(A.min)]].forEach((e,i)=>{const x=60+(i%2)*580,y=1412+Math.floor(i/2)*70;T(e[0],x,y,22,'#5b665e');T(e[1],x,y+34,30,'#1b241d','700')});
+      ['Es gewinnt das Team, das den Zielpunkt zuerst gefunden hat. Die Statistiken beeinflussen die Platzierung nicht.','Die Ø Entfernung (zeitgewichtet) ist nur ein ergänzender Vergleich; die Startposition beeinflusst sie stark.',`Messpunkte: ${L.pts.length} gespeichert, ${pts.length} verwertet${A.dropped?', '+A.dropped+' verworfen (ungenau/Sprung)':''}${A.gaps?', '+A.gaps+' GPS-Lücke(n) über 30 s nicht mitgezählt':''}${L.truncated?', Aufzeichnung gekürzt':''}.`,'Zeiten stammen von GPS-Zeitstempeln bzw. der Geräteuhr; geschätzte Zeiten sind markiert.'].forEach((t,i)=>T(t,60,1650+i*30,19,'#5b665e'))}
+    async function makePdf(cv){const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.92));if(!blob)throw Error('Bild konnte nicht erzeugt werden');const img=new Uint8Array(await blob.arrayBuffer()),W=cv.width,H=cv.height,enc=new TextEncoder(),parts=[],off=[];let len=0;
+      const push=u=>{parts.push(u);len+=u.length},str=t=>push(enc.encode(t)),obj=(n,b)=>{off[n]=len;str(n+' 0 obj\n'+b+'\nendobj\n')};
+      str('%PDF-1.4\n');obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');obj(3,'<</Type/Page/Parent 2 0 R/MediaBox[0 0 595.28 841.89]/Resources<</XObject<</Im0 4 0 R>>>>/Contents 5 0 R>>');
+      off[4]=len;str(`4 0 obj\n<</Type/XObject/Subtype/Image/Width ${W}/Height ${H}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${img.length}>>\nstream\n`);push(img);str('\nendstream\nendobj\n');
+      const cs='q 595.28 0 0 841.89 0 0 cm /Im0 Do Q';obj(5,`<</Length ${cs.length}>>\nstream\n${cs}\nendstream`);
+      const xr=len;str('xref\n0 6\n0000000000 65535 f \n');for(let i=1;i<=5;i++)str(String(off[i]).padStart(10,'0')+' 00000 n \n');str(`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF`);return new Blob(parts,{type:'application/pdf'})}
+    function showLog(L){curLog=L;drawReport(L,$('logCanvas'));const tk=++tileTok;tilePromise=loadTiles(L).then(t=>{if(t&&tk===tileTok)drawReport(L,$('logCanvas'),t);return t});['lobbyView','gameView'].forEach(i=>$(i).classList.add('hidden'));$('logView').classList.remove('hidden');window.scrollTo(0,0)}
+    $('logBtn').onclick=()=>{if(round)showLog(round)};
+    $('lastLogBtn').onclick=()=>{const L=loadLog();if(L)showLog(L)};
+    $('logCloseBtn').onclick=()=>{$('logView').classList.add('hidden');$(active?'gameView':'lobbyView').classList.remove('hidden')};
+    $('logDelBtn').onclick=()=>{if(confirm('Gespeichertes Protokoll von diesem Gerät löschen?')){try{localStorage.removeItem('signal-lastround')}catch{}refreshLogBtn();$('logCloseBtn').onclick()}};
+    $('pdfBtn').onclick=async()=>{try{if(tilePromise)await tilePromise;let b;try{b=await makePdf($('logCanvas'))}catch{if(curLog)drawReport(curLog,$('logCanvas'));b=await makePdf($('logCanvas'));toast('PDF ohne Hintergrundkarte erstellt.')}const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='Signal-Protokoll-'+new Date(((loadLog()||round||{}).start)||Date.now()).toISOString().slice(0,10)+'.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),10000)}catch(e){toast('PDF konnte nicht erstellt werden: '+(e.message||e))}};
+    try{$('teamName').value=localStorage.getItem('signal-team')||''}catch{}$('teamName').oninput=e=>{try{localStorage.setItem('signal-team',e.target.value)}catch{}};
+    refreshLogBtn();
+    /* ===== Administration / Simulation (nur zum Testen) ===== */
+    const ADMIN_HASH="89f1a58ce05236ba10f4b4d6dbe1c2542bf9cea2893b152685a46471f42a35df";
+    let simOn=false,simTimer=null;
+    async function sha(t){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+    function adminOpen(on){$('adminPanel').classList.toggle('hidden',!on);$('adminLogin').classList.add('hidden');if(!on){$('simOn').checked=false;simOn=false}}
+    $('adminLink').onclick=()=>{if($('adminPanel').classList.contains('hidden'))$('adminLogin').classList.toggle('hidden')};
+    $('adminOk').onclick=async()=>{try{if(await sha('signal-admin:'+$('adminPw').value)===ADMIN_HASH){$('adminPw').value='';$('adminMsg').textContent='';adminOpen(true)}else{await new Promise(r=>setTimeout(r,800));$('adminMsg').textContent='Falsches Passwort.'}}catch{$('adminMsg').textContent='Prüfung nicht möglich (HTTPS nötig).'}};
+    $('adminLock').onclick=()=>adminOpen(false);$('simOn').onchange=e=>{simOn=e.target.checked};
+    function stopSim(){if(simTimer){clearInterval(simTimer);simTimer=null}}
+    function startSim(){stopSim();const tg=target,kx=111320*Math.cos(tg.lat*Math.PI/180),ky=110540,v=(tg.m==='w'?5:50)/3.6,
+        d0=Number($('simD0').value)||Math.round(((tg.n||200)+(tg.r||1000))/2),sp=Number($('simSpeed').value)||1,route=$('simRoute').value,off=Number($('simOff').value)||0,
+        ang=Math.random()*2*Math.PI,ux=-Math.sin(ang),uy=-Math.cos(ang),sx=-ux*d0+(-uy)*off,sy=-uy*d0+ux*off,way=[{x:sx,y:sy}];
+      if(route==='detour')way.push({x:sx-ux*d0*.25,y:sy-uy*d0*.25});way.push({x:ux*120-uy*off,y:uy*120+ux*off});
+      const len=[];let tot=0;for(let i=1;i<way.length;i++){const l=Math.hypot(way[i].x-way[i-1].x,way[i].y-way[i-1].y);len.push(l);tot+=l}
+      const t0=Date.now();let k=0;$('gameCode').textContent='SIMULATION · '+$('gameCode').textContent;
+      simTimer=setInterval(()=>{k++;let s=Math.min(v*k,tot),i=0;while(i<len.length-1&&s>len[i]){s-=len[i];i++}const f=len[i]?s/len[i]:1,x=way[i].x+(way[i+1].x-way[i].x)*f+(Math.random()-.5)*4,y=way[i].y+(way[i+1].y-way[i].y)*f+(Math.random()-.5)*4;
+        onPos({coords:{latitude:tg.lat+y/ky,longitude:tg.lon+x/kx,accuracy:4+Math.random()*5},timestamp:t0+k*1000});if(v*k>tot+10*v)stopSim()},1000/sp)}
+    function onPos(pos){if(!active||!target)return;hasFix=true;gpsAccuracy=pos.coords.accuracy;const here={lat:pos.coords.latitude,lon:pos.coords.longitude},fix={...here,accuracy:pos.coords.accuracy,time:pos.timestamp||Date.now()};distance=metersBetween(here,target);if(startDist===null)startDist=distance;recFix(fix,distance);const hit=detectArrival(lastFix,fix,target,distance);lastFix=fix;if(!arrivedAt&&hit){arrivedAt=hit.time;const stamp=new Date(arrivedAt).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('arrivalTime').textContent=`${stamp} · ${hit.estimated?'Track-Schätzung':'GPS-Treffer'} · ±${Math.round(hit.accuracy)} m`;$('signalState').textContent='ZIEL ERREICHT';$('trendText').textContent='Ankunft lokal protokolliert. Sicher weiterfahren; nicht anhalten oder wenden.';try{if(!simOn)localStorage.setItem('signal-arrival-'+code,JSON.stringify({at:arrivedAt,accuracy:hit.accuracy,estimated:hit.estimated}))}catch{}if(round){round.arrival=arrivedAt;round.estimated=!!hit.estimated;round.end=arrivedAt;saveRound()}$('logBtn').classList.remove('hidden');stopAudioLoop();arrivalTone();toast('Ziel erreicht – Ankunftszeit lokal gespeichert.')}paintSignal();if(!arrivedAt&&!muted&&!timer)startAudioLoop()}
+    function requestGPS(){if(simOn&&target){startSim();return}if(!('geolocation'in navigator)){$('trendText').textContent='GPS ist in diesem Browser nicht verfügbar.';return}if(watchId===null){watchId=navigator.geolocation.watchPosition(onPos,e=>{if(arrivedAt)return;$('trendText').textContent=e&&e.code===1?'Standortzugriff verweigert. Erlaube ihn in den Einstellungen und starte neu.':'Gerade kein GPS-Signal. Die App versucht es weiter.'},{enableHighAccuracy:true,maximumAge:1000,timeout:15000})}}
+    function sigScale(){const R=(target&&target.r)||3000;return target&&target.m==='w'?Math.max(40,Math.min(R,3000)):Math.min(6000,Math.max(1500,R))}
+    function paintSignal(){let d=distance,I=(hasFix&&startDist!==null)?intensity(d):0,near=I;let word=I>=.9?'Sehr nah':I>=.7?'Nah':I>=.45?'Näher dran':I>=.2?'Unterwegs':'Noch weit';if(!arrivedAt)$('signalState').textContent=hasFix?word:'GPS wird gesucht';$('signalReadout').textContent=I>=.9?'● ● ● ● ●':I>=.7?'● ● ● ● ·':I>=.45?'● ● ● · ·':I>=.2?'● ● · · ·':'● · · · ·';$('signalIcon').style.boxShadow=`0 0 0 ${8+near*15}px #b5f36b0b, 0 0 ${10+near*24}px #b5f36b${Math.round(near*50).toString(16).padStart(2,'0')}`;if(hasFix&&lastDistance!==null){const delta=lastDistance-d;trend=Math.abs(delta)<(target&&target.m==='w'?2:8)?'Du bewegst dich kaum.':delta>0?'Du näherst dich.':'Du entfernst dich.'}else trend=hasFix?'Erste Messung …':'GPS wird gesucht …';if(hasFix)lastDistance=d;if(!arrivedAt&&target)$('trendText').textContent=hasFix?`${trend} · GPS ±${Math.round(gpsAccuracy)} m${gpsAccuracy>15?' (zu ungenau für Ankunft)':''}`:'GPS wird gesucht …';}
+    /* Signal relativ zum Start: Start = 25 %, nie ganz unten. Bis zur Nahzone (zu Fuß 150 m, Auto 500 m) steigt es linear auf 70 %, danach absolut bis 100 %. Weiter weg als am Start fällt es bis 0 %. */
+    function intensity(d){const D0=Math.max(startDist||d,30),Z=Math.min(target&&target.m==='w'?150:500,D0*.5);return d<=Z?.7+.3*(1-d/Z):Math.max(0,.25+.45*(D0-d)/(D0-Z))}
+    function freq(I){return 180*Math.pow(12.2,I)}
+    function startAudioLoop(){if(muted||!active||arrivedAt||!hasFix)return;stopAudioLoop();timer=setInterval(()=>{if(muted||!active||arrivedAt||!hasFix||startDist===null)return;const I=intensity(distance);if(distance<=20){steadyOn();return}steadyOff();const now=Date.now(),gap=1500*Math.pow(.04,I);if(now-lastBeepAt>=gap){lastBeepAt=now;beep(I,Math.min(120,gap*.6))}},40)}
+    function unlockAudio(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!audioCtx)audioCtx=new C();audioCtx.resume()}catch{}}
+    function stopAudioLoop(){if(timer){clearInterval(timer);timer=null}steadyOff()}
+    function beep(I,len){if(muted||!active)return;try{unlockAudio();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),vol=Number($('volume').value)/100*.5,t=audioCtx.currentTime,L=len/1000;osc.type='sine';osc.frequency.value=freq(I);gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(vol,t+.006);gain.gain.setValueAtTime(vol,t+Math.max(.006,L-.012));gain.gain.linearRampToValueAtTime(0,t+L);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(t);osc.stop(t+L+.02)}catch{}}
+    function steadyOn(){try{unlockAudio();if(!steady){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq(1);g.gain.value=0;o.connect(g);g.connect(audioCtx.destination);o.start();steady={o,g}}steady.g.gain.setTargetAtTime(Number($('volume').value)/100*.5,audioCtx.currentTime,.03)}catch{}}
+    function steadyOff(){if(!steady)return;const st=steady;steady=null;try{st.g.gain.setTargetAtTime(0,audioCtx.currentTime,.03);st.o.stop(audioCtx.currentTime+.25)}catch{}}
+    function arrivalTone(){if(muted)return;steadyOn();setTimeout(steadyOff,5000)}
+    $('startBtn').disabled=true;
+  </script>
+</body>
+</html>
